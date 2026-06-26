@@ -3,7 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-import mongoSanitize from "express-mongo-sanitize";
+import routes from "./routes/index.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 const limiter = rateLimit({
@@ -26,18 +27,17 @@ app.use(morgan("dev"));
 // Rate Limiter
 app.use(limiter);
 
-// NoSQL Injection Protection
-app.use(mongoSanitize());
 
 // General Middleware
 app.use(cors());
 app.use(express.json());
 
-app.get("/api/v1", (req, res) => {
-    res.json({
-        success: true,
-        message: "AI WhatsApp CRM Backend is Running 🚀",
-    });
-});
+
+//Routes
+app.use("/api/v1", routes);
+
+// Global Error Handler
+app.use(errorHandler);
+
 
 export default app;
