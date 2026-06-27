@@ -7,6 +7,7 @@ import { generateToken } from "../utils/tokenGenerator.js";
 import hashToken from "../utils/hashToken.js";
 import verifyEmailTemplate from "../template/verifyEmail.template.js";
 import { sendEmail } from "../services/email.service.js";
+import welcomeTemplate from "../template/welcome.template.js";
 
 
 //Helper Function
@@ -63,6 +64,7 @@ user.emailVerificationExpiry = new Date(
 
 await user.save({ validateBeforeSave: false });
 
+
 // Verification URL
 const verificationUrl =
     `${process.env.VERIFY_EMAIL_URL}?token=${verificationToken}`;
@@ -92,6 +94,29 @@ if (!createdUser) {
     );
 }
 
+
+
+
+//only for verification with out frontend 
+
+// const responseData = {
+//     user: createdUser,
+// };
+
+// if (process.env.NODE_ENV === "development") {
+//     responseData.verificationToken = verificationToken;
+// }
+
+// return res.status(201).json(
+//     new ApiResponse(
+//         201,
+//         responseData,
+//         "Registration successful. Please check your email to verify your account."
+//     )
+// );
+
+//yaha tak
+
 return res.status(201).json(
     new ApiResponse(
         201,
@@ -99,7 +124,15 @@ return res.status(201).json(
         "Registration successful. Please check your email to verify your account."
     )
 );
+
 });
+
+
+
+
+
+
+
 
 //login
 const loginUser = asyncHandler(async (req, res) => {
@@ -119,14 +152,22 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid email or password");
     }
 
+//check user is verify or not
+    if (!user.isVerified) {
+    throw new ApiError(
+        403,
+        "Please verify your email before logging in."
+    );
+}
+
     // Generate Tokens
    const { accessToken, refreshToken } =
     await generateAccessAndRefreshTokens(user._id);
 
     // Remove Sensitive Data
     const loggedInUser = await User.findById(user._id).select(
-        "-password -refreshToken -__v"
-    );
+    "-password -refreshToken -__v -emailVerificationToken -emailVerificationExpiry -forgotPasswordToken -forgotPasswordExpiry"
+);
 
     // Cookie Options
     const options = {
@@ -144,8 +185,6 @@ const loginUser = asyncHandler(async (req, res) => {
                 200,
                 {
                     user: loggedInUser,
-                    accessToken,
-                    refreshToken,
                 },
                 "Login successful"
             )
@@ -275,6 +314,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     user.emailVerificationExpiry = undefined;
 
     await user.save({ validateBeforeSave: false });
+const html = welcomeTemplate(user.firstName);
+
+await sendEmail({
+    to: user.email,
+    subject: "Welcome to AI WhatsApp CRM 🎉",
+    html,
+});
+
 
     return res.status(200).json(
         new ApiResponse(
