@@ -5,6 +5,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import routes from "./routes/index.js";
 import errorHandler from "./middleware/errorHandler.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const limiter = rateLimit({
@@ -31,6 +32,7 @@ app.use(limiter);
 // General Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 
 //Routes
