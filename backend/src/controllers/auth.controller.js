@@ -3,6 +3,11 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import { generateToken } from "../utils/tokenGenerator.js";
+import hashToken from "../utils/hashToken.js";
+import verifyEmailTemplate from "../template/verifyEmail.template.js";
+import { sendEmail } from "../services/email.service.js";
+
 
 //Helper Function
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -26,6 +31,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 //Registration
+
 const registerUser = asyncHandler(async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
@@ -44,22 +50,55 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
     });
 
-    // Fetch user without password & refreshToken
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
+    // Generate verification token
+const verificationToken = generateToken();
 
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering user");
-    }
+// Save hashed token
+user.emailVerificationToken = hashToken(verificationToken);
 
-    return res.status(201).json(
-        new ApiResponse(
-            201,
-            createdUser,
-            "User registered successfully"
-        )
+// Expiry after 24 hours
+user.emailVerificationExpiry = new Date(
+    Date.now() + 24 * 60 * 60 * 1000
+);
+
+await user.save({ validateBeforeSave: false });
+
+// Verification URL
+const verificationUrl =
+    `${process.env.VERIFY_EMAIL_URL}?token=${verificationToken}`;
+
+// Email HTML
+const html = verifyEmailTemplate(
+    user.firstName,
+    verificationUrl
+);
+
+// Send email
+await sendEmail({
+    to: user.email,
+    subject: "Verify Your Email - AI WhatsApp CRM",
+    html,
+});
+
+// Fetch safe user
+const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken -__v -emailVerificationToken -emailVerificationExpiry -forgotPasswordToken -forgotPasswordExpiry"
+);
+
+if (!createdUser) {
+    throw new ApiError(
+        500,
+        "Something went wrong while registering user"
     );
+}
+
+return res.status(201).json(
+    new ApiResponse(
+        201,
+        createdUser,
+        "Registration successful. Please check your email to verify your account."
+    )
+);
 });
 
 //login
@@ -208,10 +247,49 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 });
 
+ const verifyEmail = asyncHandler(async (req, res) => {
+    const { token } = req.body;
+
+    if (!token) {
+        throw new ApiError(400, "Verification token is required");
+    }
+
+    // Hash incoming token
+    const hashedToken = hashToken(token);
+
+    // Find user
+    const user = await User.findOne({
+        emailVerificationToken: hashedToken,
+        emailVerificationExpiry: { $gt: new Date() },
+    });
+
+    if (!user) {
+        throw new ApiError(400, "Invalid or expired verification token");
+    }
+
+    // Verify account
+    user.isVerified = true;
+
+    // Remove token
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpiry = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Email verified successfully"
+        )
+    );
+});
+
 export {
     registerUser,
     loginUser,
     getCurrentUser,
     logoutUser,
     refreshAccessToken,
+    verifyEmail,
 };

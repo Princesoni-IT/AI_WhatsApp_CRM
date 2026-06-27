@@ -10,12 +10,15 @@ import {
     getCurrentUser,
     logoutUser,
     refreshAccessToken,
+    verifyEmail,
 } from "../controllers/auth.controller.js";
 
 import validate from "../middleware/validate.js";
 import verifyJWT from "../middleware/auth.middleware.js";
 
 const router = Router();
+
+router.post("/verify-email", verifyEmail);
 
 router.post(
     "/refresh-token",
