@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
     registerValidator,
     loginValidator,
+    forgotPasswordValidator,
+    resetPasswordValidator,
 } from "../validators/auth.validator.js";
 
 import {
@@ -11,6 +13,8 @@ import {
     logoutUser,
     refreshAccessToken,
     verifyEmail,
+    forgotPassword,
+    resetPassword,
 } from "../controllers/auth.controller.js";
 
 import validate from "../middleware/validate.js";
@@ -23,6 +27,20 @@ router.post("/verify-email", verifyEmail);
 router.post(
     "/refresh-token",
     refreshAccessToken
+);
+
+router.post(
+    "/forgot-password",
+    forgotPasswordValidator,
+    validate,
+    forgotPassword
+);
+
+router.post(
+    "/reset-password",
+    resetPasswordValidator,
+    validate,
+    resetPassword
 );
 
 router.post(

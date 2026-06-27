@@ -54,3 +54,45 @@ export const loginValidator = [
         .notEmpty()
         .withMessage("Password is required"),
 ];
+
+export const forgotPasswordValidator = [
+    body("email")
+        .trim()
+        .notEmpty()
+        .withMessage("Email is required")
+        .bail()
+        .isEmail()
+        .withMessage("Please enter a valid email")
+        .normalizeEmail(),
+];
+
+export const resetPasswordValidator = [
+    body("token")
+        .notEmpty()
+        .withMessage("Reset token is required"),
+
+    body("password")
+        .notEmpty()
+        .withMessage("Password is required")
+        .bail()
+        .isStrongPassword({
+            minLength: 8,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1,
+        })
+        .withMessage(
+            "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character"
+        ),
+
+    body("confirmPassword")
+        .notEmpty()
+        .withMessage("Confirm password is required")
+        .custom((value, { req }) => {
+            if (value !== req.body.password) {
+                throw new Error("Passwords do not match");
+            }
+            return true;
+        }),
+];

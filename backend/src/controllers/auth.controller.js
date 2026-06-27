@@ -8,6 +8,7 @@ import hashToken from "../utils/hashToken.js";
 import verifyEmailTemplate from "../template/verifyEmail.template.js";
 import { sendEmail } from "../services/email.service.js";
 import welcomeTemplate from "../template/welcome.template.js";
+import forgotPasswordTemplate from "../template/forgotPassword.template.js";
 
 
 //Helper Function
@@ -332,6 +333,94 @@ await sendEmail({
     );
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // Generate reset token
+    const resetToken = generateToken();
+
+    // Save hashed token
+    user.forgotPasswordToken = hashToken(resetToken);
+
+    // Token expiry (15 minutes)
+    user.forgotPasswordExpiry = new Date(
+        Date.now() + 15 * 60 * 1000
+    );
+
+    await user.save({ validateBeforeSave: false });
+
+    // Reset URL
+    const resetUrl =
+        `${process.env.RESET_PASSWORD_URL}?token=${resetToken}`;
+
+    // Email HTML
+    const html = forgotPasswordTemplate(
+        user.firstName,
+        resetUrl
+    );
+
+    // Send email
+    await sendEmail({
+        to: user.email,
+        subject: "Reset Your Password - AI WhatsApp CRM",
+        html,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Password reset link sent to your email."
+        )
+    );
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { token, password } = req.body;
+
+    // Check token
+    if (!token) {
+        throw new ApiError(400, "Reset token is required");
+    }
+
+    // Hash incoming token
+    const hashedToken = hashToken(token);
+
+    // Find user
+    const user = await User.findOne({
+        forgotPasswordToken: hashedToken,
+        forgotPasswordExpiry: { $gt: new Date() },
+    });
+
+    if (!user) {
+        throw new ApiError(400, "Invalid or expired reset token");
+    }
+
+    // Update password
+    user.password = password;
+
+    // Remove reset token
+    user.forgotPasswordToken = undefined;
+    user.forgotPasswordExpiry = undefined;
+
+    await user.save();
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Password reset successfully"
+        )
+    );
+});
+
 export {
     registerUser,
     loginUser,
@@ -339,4 +428,6 @@ export {
     logoutUser,
     refreshAccessToken,
     verifyEmail,
+    forgotPassword,
+    resetPassword,
 };
