@@ -400,7 +400,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
-    
+
     const user = await User.findOne({ email });
 
     if (!user) {
