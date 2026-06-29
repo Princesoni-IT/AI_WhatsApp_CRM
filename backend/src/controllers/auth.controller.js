@@ -232,7 +232,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
     // DB me refreshToken empty string se overwrite karo
     await User.findByIdAndUpdate(
-        req.user._id,
+         req.user._id,
         {
             $set: {
                 refreshToken: "",
@@ -501,6 +501,84 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 
 // ============================================================
+// CONTROLLER: Resend Verification Email
+// ============================================================
+// Agar user ka account verify nahi hua hai,
+// to naya verification email bhejna hai.
+//
+// Steps:
+// 1. Email se user dhundo
+// 2. Agar user exist nahi karta → generic response
+// 3. Agar already verified hai → error
+// 4. Naya verification token generate karo
+// 5. Hashed token + 24h expiry DB me save karo
+// 6. Verification email dobara bhejo
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    // User find karo
+    const user = await User.findOne({ email });
+
+    // Security: Email enumeration avoid karo
+    if (!user) {
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                null,
+                "If an account with this email exists, a verification email has been sent."
+            )
+        );
+    }
+
+    // Already verified
+    if (user.isVerified) {
+        throw new ApiError(
+            400,
+            "Your email is already verified. Please login."
+        );
+    }
+
+    // Naya verification token generate karo
+    const verificationToken = generateToken();
+
+    // Hashed token DB me save karo
+    user.emailVerificationToken = hashToken(verificationToken);
+
+    // Token expiry (24 hours)
+    user.emailVerificationExpiry = new Date(
+        Date.now() + 24 * 60 * 60 * 1000
+    );
+
+    await user.save({ validateBeforeSave: false });
+
+    // Verification URL
+    const verificationUrl =
+        `${process.env.VERIFY_EMAIL_URL}?token=${verificationToken}`;
+
+    // Email template
+    const html = verifyEmailTemplate(
+        user.firstName,
+        verificationUrl
+    );
+
+    // Send email
+    await sendEmail({
+        to: user.email,
+        subject: "Verify Your Email - AI WhatsApp CRM",
+        html,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            null,
+            "Verification email sent successfully."
+        )
+    );
+});
+
+
+// ============================================================
 // EXPORTS
 // ============================================================
 export {
@@ -512,4 +590,5 @@ export {
     verifyEmail,
     forgotPassword,
     resetPassword,
+    resendVerificationEmail,
 };

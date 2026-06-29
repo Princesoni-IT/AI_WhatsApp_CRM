@@ -76,6 +76,35 @@ export default function Login() {
     }
   }
 
+async function handleResendVerification() {
+
+    try {
+
+        const res = await fetch(
+            "http://localhost:5000/api/v1/auth/resend-verification-email",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: form.email,
+                }),
+            }
+        );
+
+        const data = await res.json();
+
+        alert(data.message);
+
+    } catch {
+
+        alert("Unable to resend verification email.");
+
+    }
+
+}  
+
   function handleChange(field: keyof FormData, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -135,7 +164,11 @@ export default function Login() {
                   <strong>Email not verified.</strong>
                   <p>
                     {errors.api} Please check your inbox for the verification link, or{" "}
-                    <a href="/resend-verification" className="lg-link">resend it</a>.
+                    <button
+                       className="lg-link"
+                          onClick={handleResendVerification}>
+                        resend it
+                    </button>
                   </p>
                 </div>
               </div>

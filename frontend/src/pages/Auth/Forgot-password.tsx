@@ -152,7 +152,7 @@ function ForgotForm() {
 // ══════════════════════════════════════════════════════════════
 function ResetForm({ token }: { token: string }) {
   const [password, setPassword]   = useState("");
-  const [confirm, setConfirm]     = useState("");
+  const [confirmPassword, setConfirmPassword]     = useState("");
   const [showPw, setShowPw]       = useState(false);
   const [showCf, setShowCf]       = useState(false);
   const [errors, setErrors]       = useState<{ password?: string; confirm?: string; api?: string }>({});
@@ -165,8 +165,8 @@ function ResetForm({ token }: { token: string }) {
     const e: typeof errors = {};
     if (!password)              e.password = "Password is required.";
     else if (password.length < 8) e.password = "Password must be at least 8 characters.";
-    if (!confirm)               e.confirm  = "Please confirm your password.";
-    else if (confirm !== password) e.confirm = "Passwords do not match.";
+    if (!confirmPassword)               e.confirm  = "Please confirm your password.";
+    else if (confirmPassword !== password) e.confirm = "Passwords do not match.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -183,7 +183,7 @@ function ResetForm({ token }: { token: string }) {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         // Controller expects: { token, password }
-        body:    JSON.stringify({ token, password }),
+        body:    JSON.stringify({ token, password,confirmPassword }),
       });
 
       const data = await res.json();
@@ -298,9 +298,9 @@ function ResetForm({ token }: { token: string }) {
               className={`fp-input ${errors.confirm ? "fp-input--err" : ""}`}
               type={showCf ? "text" : "password"}
               placeholder="Re-enter password"
-              value={confirm}
+              value={confirmPassword}
               autoComplete="new-password"
-              onChange={e => { setConfirm(e.target.value); setErrors(p => ({ ...p, confirm: undefined })); }}
+              onChange={e => { setConfirmPassword(e.target.value); setErrors(p => ({ ...p, confirm: undefined })); }}
             />
             <button
               type="button" className="fp-pw-toggle"
@@ -312,9 +312,9 @@ function ResetForm({ token }: { token: string }) {
           </div>
 
           {/* Match indicator */}
-          {confirm && password && (
-            <p className={`fp-match ${confirm === password ? "fp-match--ok" : "fp-match--no"}`}>
-              {confirm === password
+          {confirmPassword && password && (
+            <p className={`fp-match ${confirmPassword === password ? "fp-match--ok" : "fp-match--no"}`}>
+              {confirmPassword === password
                 ? <><CheckCircle size={13} /> Passwords match</>
                 : <><AlertCircle size={13} /> Passwords don't match</>
               }

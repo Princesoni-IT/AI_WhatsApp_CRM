@@ -1048,16 +1048,16 @@ export default function Home() {
               <div className="crm-form-row">
                 <div className="crm-field">
                   <label>First Name</label>
-                  <input type="text" placeholder="Rahul" />
+                  <input type="text" placeholder="Prince" />
                 </div>
                 <div className="crm-field">
                   <label>Last Name</label>
-                  <input type="text" placeholder="Sharma" />
+                  <input type="text" placeholder="Soni" />
                 </div>
               </div>
               <div className="crm-field">
                 <label>Email</label>
-                <input type="email" placeholder="rahul@yourstore.com" />
+                <input type="email" placeholder="princesoni@gmail.com" />
               </div>
               <div className="crm-field">
                 <label>Business Type</label>

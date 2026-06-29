@@ -4,6 +4,7 @@ import {
     loginValidator,
     forgotPasswordValidator,
     resetPasswordValidator,
+    resendVerificationEmailValidator,
 } from "../validators/auth.validator.js";
 
 import {
@@ -15,6 +16,7 @@ import {
     verifyEmail,
     forgotPassword,
     resetPassword,
+    resendVerificationEmail,
 } from "../controllers/auth.controller.js";
 
 import validate from "../middleware/validate.js";
@@ -27,6 +29,13 @@ router.post("/verify-email", verifyEmail);
 router.post(
     "/refresh-token",
     refreshAccessToken
+);
+
+router.post(
+    "/resend-verification-email",
+    resendVerificationEmailValidator,
+    validate,
+    resendVerificationEmail
 );
 
 router.post(

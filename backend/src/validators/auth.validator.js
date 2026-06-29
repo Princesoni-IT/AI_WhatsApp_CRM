@@ -96,3 +96,14 @@ export const resetPasswordValidator = [
             return true;
         }),
 ];
+
+export const resendVerificationEmailValidator = [
+    body("email")
+        .trim()
+        .notEmpty()
+        .withMessage("Email is required")
+        .bail()
+        .isEmail()
+        .withMessage("Please enter a valid email")
+        .normalizeEmail(),
+];
