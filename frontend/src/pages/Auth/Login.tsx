@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, AlertCircle, MailWarning } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, AlertCircle, MailWarning, RefreshCw, Mail } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────
 interface FormData {
@@ -20,6 +20,11 @@ export default function Login() {
   const [showPw, setShowPw]   = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Resend verification states
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendStatus, setResendStatus]   = useState<"idle" | "success" | "error">("idle");
+  const [resendMsg, setResendMsg]         = useState("");
 
   // ── Validation ──────────────────────────────────────────────
   function validate(): boolean {
@@ -77,33 +82,41 @@ export default function Login() {
   }
 
 async function handleResendVerification() {
+    setResendLoading(true);
+    setResendStatus("idle");
+    setResendMsg("");
 
     try {
+      const res = await fetch(
+        "http://localhost:5000/api/v1/auth/resend-verification-email",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: form.email }),
+        }
+      );
 
-        const res = await fetch(
-            "http://localhost:5000/api/v1/auth/resend-verification-email",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: form.email,
-                }),
-            }
-        );
+      const data = await res.json();
 
-        const data = await res.json();
-
-        alert(data.message);
-
+      if (!res.ok) {
+        setResendStatus("error");
+        setResendMsg(data?.message || "Failed to resend verification email.");
+      } else {
+        setResendStatus("success");
+        setResendMsg(data?.message || "Verification email sent! Check your inbox.");
+        // Auto-dismiss success after 6 seconds
+        setTimeout(() => {
+          setResendStatus("idle");
+          setResendMsg("");
+        }, 6000);
+      }
     } catch {
-
-        alert("Unable to resend verification email.");
-
+      setResendStatus("error");
+      setResendMsg("Network error. Unable to resend verification email.");
+    } finally {
+      setResendLoading(false);
     }
-
-}  
+  }  
 
   function handleChange(field: keyof FormData, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -160,17 +173,55 @@ async function handleResendVerification() {
             {errors.api && errors.apiType === "unverified" && (
               <div className="lg-banner lg-banner--warn" role="alert">
                 <MailWarning size={18} />
-                <div>
+                <div style={{ flex: 1 }}>
                   <strong>Email not verified.</strong>
                   <p>
-                    {errors.api} Please check your inbox for the verification link, or{" "}
-                    <button
-                       className="lg-link"
-                          onClick={handleResendVerification}>
-                        resend it
-                    </button>
+                    {errors.api} Please check your inbox for the verification link.
                   </p>
+                  <button
+                    className="lg-resend-btn"
+                    onClick={handleResendVerification}
+                    disabled={resendLoading}
+                  >
+                    {resendLoading ? (
+                      <><Loader2 size={14} className="lg-spin" /> Sending…</>
+                    ) : (
+                      <><RefreshCw size={14} /> Resend verification email</>
+                    )}
+                  </button>
                 </div>
+              </div>
+            )}
+
+            {/* Resend toast — success */}
+            {resendStatus === "success" && (
+              <div className="lg-banner lg-banner--ok lg-toast-enter" role="status">
+                <CheckCircle size={18} />
+                <div>
+                  <strong>Email sent!</strong>
+                  <p>{resendMsg}</p>
+                </div>
+                <button
+                  className="lg-toast-close"
+                  onClick={() => { setResendStatus("idle"); setResendMsg(""); }}
+                  aria-label="Dismiss"
+                >×</button>
+              </div>
+            )}
+
+            {/* Resend toast — error */}
+            {resendStatus === "error" && (
+              <div className="lg-banner lg-banner--err lg-toast-enter" role="alert">
+                <AlertCircle size={18} />
+                <div>
+                  <strong>Resend failed.</strong>
+                  <p>{resendMsg}</p>
+                </div>
+                <button
+                  className="lg-toast-close"
+                  onClick={() => { setResendStatus("idle"); setResendMsg(""); }}
+                  aria-label="Dismiss"
+                >×</button>
               </div>
             )}
             {errors.api && errors.apiType === "invalid" && (
@@ -425,6 +476,67 @@ html { -webkit-text-size-adjust: 100%; }
   color: #92400e;
 }
 .lg-banner--warn .lg-link { color: #b45309; }
+
+/* ── RESEND BUTTON (inside warn banner) ── */
+.lg-resend-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #92400e;
+  background: rgba(180, 83, 9, 0.1);
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.lg-resend-btn:hover:not(:disabled) {
+  background: rgba(180, 83, 9, 0.18);
+  transform: translateY(-1px);
+}
+.lg-resend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── SUCCESS BANNER ── */
+.lg-banner--ok {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+/* ── TOAST ANIMATION ── */
+@keyframes toastSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lg-toast-enter {
+  animation: toastSlide 0.3s ease-out;
+}
+
+/* ── TOAST CLOSE ── */
+.lg-toast-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 2px 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: inherit;
+  transition: opacity 0.15s;
+}
+.lg-toast-close:hover {
+  opacity: 1;
+}
 
 /* ── FIELDS ── */
 .lg-field {

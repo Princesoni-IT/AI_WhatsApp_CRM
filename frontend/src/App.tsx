@@ -6,6 +6,7 @@ import Login from "./pages/Auth/Login";
 import ForgotPassword from "./pages/Auth/Forgot-password";
 import VerifyEmail from "./pages/Auth/VerifyEmail";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 
 function App() {
@@ -17,6 +18,14 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/Forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

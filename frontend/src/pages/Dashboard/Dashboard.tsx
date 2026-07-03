@@ -1,12 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Package, Megaphone,
   Target, ShoppingBag, Settings, LogOut,
-  MessageSquare, TrendingUp, TrendingDown,
+  MessageSquare, TrendingUp,
   Bell, Search, ChevronRight, MoreHorizontal,
   Wifi, WifiOff, Menu, X, Bot,
-  ArrowUpRight, ArrowDownRight, Clock, CheckCircle2,
-  AlertCircle, Circle
+  ArrowUpRight, ArrowDownRight, Clock,
+  AlertCircle
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -107,12 +108,41 @@ const BAR_DATA = [
 ];
 
 // ══════════════════════════════════════════════════════════════
-export default function Dashboard() {
+export default function Dashboard({ user }: { user?: any }) {
   const [active, setActive]       = useState("dashboard");
   const [sidebarOpen, setSidebar] = useState(false);
   const [waConnected]             = useState(true); // mock
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const user = { name: "Prince Soni", store: "Scent Studio" };
+  const authUser = user ?? {
+    firstName: "Guest",
+    lastName: "User",
+    email: "guest@example.com",
+  };
+
+  const displayName = `${authUser.firstName ?? "Guest"} ${authUser.lastName ?? "User"}`.trim();
+  const storeName = authUser.storeName ?? "Your Store";
+
+  const handleLogout = async () => {
+    try {
+      setLogoutLoading(true);
+      const response = await fetch("http://localhost:5000/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      navigate("/login", { replace: true });
+    } catch {
+      navigate("/login", { replace: true });
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
 
   return (
     <>
@@ -161,14 +191,21 @@ export default function Dashboard() {
           {/* User card */}
           <div className="db-user-card">
             <div className="db-user-avatar">
-              {user.name.split(" ").map(n => n[0]).join("")}
+              {(displayName || "GU")
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")}
             </div>
             <div className="db-user-info">
-              <p className="db-user-name">{user.name}</p>
-              <p className="db-user-store">{user.store}</p>
+              <p className="db-user-name">{displayName}</p>
+              <p className="db-user-store">{storeName}</p>
             </div>
-            <button className="db-logout-btn" title="Logout"
-              onClick={() => { window.location.href = "/login"; }}>
+            <button
+              className="db-logout-btn"
+              title="Logout"
+              onClick={handleLogout}
+              disabled={logoutLoading}
+            >
               <LogOut size={15} />
             </button>
           </div>
@@ -194,7 +231,7 @@ export default function Dashboard() {
               </button>
               <div>
                 <h1 className="db-page-title">Dashboard</h1>
-                <p className="db-page-sub">Welcome back, {user.name.split(" ")[0]} 👋</p>
+                <p className="db-page-sub">Welcome back, {displayName.split(" ")[0]} 👋</p>
               </div>
             </div>
 
