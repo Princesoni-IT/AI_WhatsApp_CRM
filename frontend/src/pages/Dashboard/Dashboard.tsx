@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authApi } from "../../services/api";
 import {
   LayoutDashboard, Users, Package, Megaphone,
   Target, ShoppingBag, Settings, LogOut,
@@ -113,16 +114,37 @@ export default function Dashboard({ user }: { user?: any }) {
   const [sidebarOpen, setSidebar] = useState(false);
   const [waConnected]             = useState(true); // mock
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [authUser, setAuthUser] = useState(user);
+  const [loading, setLoading] = useState(!user);
   const navigate = useNavigate();
 
-  const authUser = user ?? {
+  // Fetch current user if not provided as prop
+  useEffect(() => {
+    if (!user) {
+      const fetchUser = async () => {
+        try {
+          const response = await authApi.getCurrentUser();
+          if (response.success && response.data) {
+            setAuthUser(response.data);
+          }
+        } catch {
+          console.error("Failed to fetch user data");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchUser();
+    }
+  }, [user]);
+
+  const userData = authUser ?? {
     firstName: "Guest",
     lastName: "User",
     email: "guest@example.com",
   };
 
-  const displayName = `${authUser.firstName ?? "Guest"} ${authUser.lastName ?? "User"}`.trim();
-  const storeName = authUser.storeName ?? "Your Store";
+  const displayName = `${userData.firstName ?? "Guest"} ${userData.lastName ?? "User"}`.trim();
+  const storeName = userData.storeName ?? "Your Store";
 
   const handleLogout = async () => {
     try {

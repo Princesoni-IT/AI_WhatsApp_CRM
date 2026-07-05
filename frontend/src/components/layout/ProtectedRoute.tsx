@@ -1,78 +1,51 @@
-import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { authApi } from "../../services/api";
 
-const API_BASE_URL = "http://localhost:5000/api/v1";
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
 
-type ProtectedRouteProps = {
-  children: React.ReactElement;
-};
-
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const [isChecking, setIsChecking] = useState(true);
+/**
+ * Protected Route Component
+ * Wraps routes that require authentication
+ * Redirects to login if user is not authenticated
+ */
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const location = useLocation();
 
   useEffect(() => {
-    let isMounted = true;
-
-    const verifySession = async () => {
+    const checkAuth = async () => {
       try {
-        let response = await fetch(`${API_BASE_URL}/auth/me`, {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (response.status === 401) {
-          response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
-            method: "POST",
-            credentials: "include",
-          });
+        const response = await authApi.getCurrentUser();
+        if (response.success && response.data) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
         }
-
-        if (!response.ok) {
-          throw new Error("Unauthorized");
-        }
-
-        const data = await response.json();
-
-        if (!isMounted) return;
-
-        setUser(data?.data ?? null);
-        setIsAuthenticated(true);
       } catch {
-        if (!isMounted) return;
         setIsAuthenticated(false);
-        setUser(null);
       } finally {
-        if (isMounted) {
-          setIsChecking(false);
-        }
+        setIsLoading(false);
       }
     };
 
-    verifySession();
+    checkAuth();
+  }, []);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [location.pathname]);
-
-  if (isChecking) {
+  if (isLoading) {
     return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#f8fafc", color: "#0f172a" }}>
-        Checking session...
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return React.isValidElement(children)
-    ? React.cloneElement(children as React.ReactElement<{ user: any }>, { user })
-    : children;
-};
-
-export default ProtectedRoute;
+  return <>{children}</>;
+}
