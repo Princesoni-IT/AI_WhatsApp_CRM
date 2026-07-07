@@ -21,10 +21,11 @@ import {
 
 import validate from "../middleware/validate.js";
 import verifyJWT from "../middleware/auth.middleware.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
-router.post("/verify-email", verifyEmail);
+router.post("/verify-email", authLimiter, verifyEmail);
 
 router.post(
     "/refresh-token",
@@ -33,6 +34,7 @@ router.post(
 
 router.post(
     "/resend-verification-email",
+    authLimiter,
     resendVerificationEmailValidator,
     validate,
     resendVerificationEmail
@@ -40,6 +42,7 @@ router.post(
 
 router.post(
     "/forgot-password",
+    authLimiter,
     forgotPasswordValidator,
     validate,
     forgotPassword
@@ -47,6 +50,7 @@ router.post(
 
 router.post(
     "/reset-password",
+    authLimiter,
     resetPasswordValidator,
     validate,
     resetPassword
@@ -66,6 +70,7 @@ router.get(
 
 router.post(
     "/register",
+    authLimiter,
     registerValidator,
     validate,
     registerUser
@@ -74,6 +79,7 @@ router.post(
 
 router.post(
     "/login",
+    authLimiter,
     loginValidator,
     validate,
     loginUser

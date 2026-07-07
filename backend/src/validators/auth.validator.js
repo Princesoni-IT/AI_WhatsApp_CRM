@@ -23,6 +23,8 @@ export const registerValidator = [
         .withMessage("Email is required")
         .isEmail()
         .withMessage("Please enter a valid email")
+        .isLength({ max: 100 })
+        .withMessage("Email must be at most 100 characters")
         .normalizeEmail(),
 
     body("password")
@@ -37,7 +39,9 @@ export const registerValidator = [
         })
         .withMessage(
             "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character"
-        ),
+        )
+        .isLength({ max: 32 })
+        .withMessage("Password must be at most 32 characters"),
 ];
 
 export const loginValidator = [
@@ -48,11 +52,15 @@ export const loginValidator = [
         .bail()
         .isEmail()
         .withMessage("Please enter a valid email")
+        .isLength({ max: 100 })
+        .withMessage("Email must be at most 100 characters")
         .normalizeEmail(),
 
     body("password")
         .notEmpty()
-        .withMessage("Password is required"),
+        .withMessage("Password is required")
+        .isLength({ max: 32 })
+        .withMessage("Password must be at most 32 characters"),
 ];
 
 export const forgotPasswordValidator = [
@@ -63,6 +71,8 @@ export const forgotPasswordValidator = [
         .bail()
         .isEmail()
         .withMessage("Please enter a valid email")
+        .isLength({ max: 100 })
+        .withMessage("Email must be at most 100 characters")
         .normalizeEmail(),
 ];
 
@@ -84,11 +94,15 @@ export const resetPasswordValidator = [
         })
         .withMessage(
             "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character"
-        ),
+        )
+        .isLength({ max: 32 })
+        .withMessage("Password must be at most 32 characters"),
 
     body("confirmPassword")
         .notEmpty()
         .withMessage("Confirm password is required")
+        .isLength({ max: 32 })
+        .withMessage("Confirm password must be at most 32 characters")
         .custom((value, { req }) => {
             if (value !== req.body.password) {
                 throw new Error("Passwords do not match");
@@ -105,5 +119,7 @@ export const resendVerificationEmailValidator = [
         .bail()
         .isEmail()
         .withMessage("Please enter a valid email")
+        .isLength({ max: 100 })
+        .withMessage("Email must be at most 100 characters")
         .normalizeEmail(),
 ];

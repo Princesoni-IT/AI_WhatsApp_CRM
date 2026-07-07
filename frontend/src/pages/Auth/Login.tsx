@@ -31,7 +31,11 @@ export default function Login() {
     const e: FormErrors = {};
     if (!form.email.trim())                    e.email    = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email    = "Enter a valid email address.";
+    else if (form.email.length > 100)          e.email    = "Email cannot exceed 100 characters.";
+    
     if (!form.password)                        e.password = "Password is required.";
+    else if (form.password.length > 32)        e.password = "Password cannot exceed 32 characters.";
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -252,6 +256,7 @@ async function handleResendVerification() {
                   placeholder="princesoni@gmail.com"
                   value={form.email}
                   autoComplete="email"
+                  maxLength={100}
                   onChange={e => handleChange("email", e.target.value)}
                 />
                 {errors.email && <p className="lg-error" role="alert">{errors.email}</p>}
@@ -271,6 +276,7 @@ async function handleResendVerification() {
                     placeholder="Enter your password"
                     value={form.password}
                     autoComplete="current-password"
+                    maxLength={32}
                     onChange={e => handleChange("password", e.target.value)}
                   />
                   <button

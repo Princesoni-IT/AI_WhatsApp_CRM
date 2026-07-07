@@ -44,6 +44,7 @@ function ForgotForm() {
   function validate() {
     if (!email.trim())                    { setError("Email is required."); return false; }
     if (!/\S+@\S+\.\S+/.test(email))     { setError("Enter a valid email address."); return false; }
+    if (email.length > 100)               { setError("Email cannot exceed 100 characters."); return false; }
     return true;
   }
 
@@ -128,6 +129,7 @@ function ForgotForm() {
             placeholder="princesoni@gmail.com"
             value={email}
             autoComplete="email"
+            maxLength={100}
             onChange={e => { setEmail(e.target.value); setError(""); }}
           />
         </div>
@@ -165,8 +167,12 @@ function ResetForm({ token }: { token: string }) {
     const e: typeof errors = {};
     if (!password)              e.password = "Password is required.";
     else if (password.length < 8) e.password = "Password must be at least 8 characters.";
+    else if (password.length > 32) e.password = "Password cannot exceed 32 characters.";
+    
     if (!confirmPassword)               e.confirm  = "Please confirm your password.";
     else if (confirmPassword !== password) e.confirm = "Passwords do not match.";
+    else if (confirmPassword.length > 32) e.confirm = "Confirm password cannot exceed 32 characters.";
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -255,6 +261,7 @@ function ResetForm({ token }: { token: string }) {
               placeholder="Min. 8 characters"
               value={password}
               autoComplete="new-password"
+              maxLength={32}
               onChange={e => { setPassword(e.target.value); setErrors(p => ({ ...p, password: undefined })); }}
             />
             <button
@@ -300,6 +307,7 @@ function ResetForm({ token }: { token: string }) {
               placeholder="Re-enter password"
               value={confirmPassword}
               autoComplete="new-password"
+              maxLength={32}
               onChange={e => { setConfirmPassword(e.target.value); setErrors(p => ({ ...p, confirm: undefined })); }}
             />
             <button

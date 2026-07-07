@@ -51,11 +51,19 @@ export default function Register() {
   function validate(): boolean {
     const e: FormErrors = {};
     if (!form.firstName.trim())               e.firstName = "First name is required.";
+    else if (form.firstName.length > 50)      e.firstName = "First name cannot exceed 50 characters.";
+    
     if (!form.lastName.trim())                e.lastName  = "Last name is required.";
+    else if (form.lastName.length > 50)       e.lastName  = "Last name cannot exceed 50 characters.";
+    
     if (!form.email.trim())                   e.email     = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email   = "Enter a valid email address.";
+    else if (form.email.length > 100)         e.email     = "Email cannot exceed 100 characters.";
+    
     if (!form.password)                       e.password  = "Password is required.";
     else if (form.password.length < 8)        e.password  = "Password must be at least 8 characters.";
+    else if (form.password.length > 32)       e.password  = "Password cannot exceed 32 characters.";
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -177,6 +185,7 @@ export default function Register() {
                   value={form.firstName}
                   error={errors.firstName}
                   autoComplete="given-name"
+                  maxLength={50}
                   onChange={v => handleChange("firstName", v)}
                 />
                 <Field
@@ -186,6 +195,7 @@ export default function Register() {
                   value={form.lastName}
                   error={errors.lastName}
                   autoComplete="family-name"
+                  maxLength={50}
                   onChange={v => handleChange("lastName", v)}
                 />
               </div>
@@ -198,6 +208,7 @@ export default function Register() {
                 value={form.email}
                 error={errors.email}
                 autoComplete="email"
+                maxLength={100}
                 onChange={v => handleChange("email", v)}
               />
 
@@ -211,6 +222,7 @@ export default function Register() {
                     placeholder="Min. 8 characters"
                     value={form.password}
                     autoComplete="new-password"
+                    maxLength={32}
                     onChange={e => handleChange("password", e.target.value)}
                   />
                   <button
@@ -286,10 +298,10 @@ export default function Register() {
 
 // ─── Reusable field ──────────────────────────────────────────
 function Field({
-  label, type, placeholder, value, error, autoComplete, onChange,
+  label, type, placeholder, value, error, autoComplete, maxLength, onChange,
 }: {
   label: string; type: string; placeholder: string; value: string;
-  error?: string; autoComplete?: string; onChange: (v: string) => void;
+  error?: string; autoComplete?: string; maxLength?: number; onChange: (v: string) => void;
 }) {
   return (
     <div className="rg-field">
@@ -300,6 +312,7 @@ function Field({
         placeholder={placeholder}
         value={value}
         autoComplete={autoComplete}
+        maxLength={maxLength}
         onChange={e => onChange(e.target.value)}
       />
       {error && <p className="rg-error" role="alert">{error}</p>}
