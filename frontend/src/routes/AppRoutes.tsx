@@ -4,7 +4,8 @@ import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
 import ForgotPassword from "../pages/Auth/Forgot-password";
 import VerifyEmail from "../pages/Auth/VerifyEmail";
-import Dashboard from "../pages/Dashboard/Dashboard";
+import Dashboard from "../pages/Dashboard/DashboardHome";
+import CampaignDetailPage from "../components/campaign/CampaignDetailPage";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
 /**
@@ -27,6 +28,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/campaigns/:id"
+        element={
+          <ProtectedRoute>
+            <CampaignDetailPage />
           </ProtectedRoute>
         }
       />

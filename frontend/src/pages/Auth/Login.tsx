@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, AlertCircle, MailWarning, RefreshCw, Mail } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle, AlertCircle, MailWarning, RefreshCw } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────
 interface FormData {
