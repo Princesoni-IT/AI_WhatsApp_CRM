@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": ["baileys_auth/**", "node_modules/**", "*.log"],
+  "exec": "node src/server.js"
+}

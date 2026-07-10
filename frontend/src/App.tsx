@@ -9,6 +9,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import DashboardHome from "./pages/Dashboard/DashboardHome";
 import ContactsPage from "./pages/Dashboard/Contacts";
 import CampaignPage from "./components/campaign/CampaignPage";
+import Inbox from "./pages/Dashboard/Inbox";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 
@@ -32,6 +33,7 @@ function App() {
           }
         >
           <Route index element={<DashboardHome />} />
+          <Route path="inbox" element={<Inbox />} />
           <Route path="customers" element={<ContactsPage />} />
           <Route path="campaigns" element={<CampaignPage />} />
         </Route>

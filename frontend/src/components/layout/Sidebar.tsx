@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Megaphone, LogOut, X, Wifi } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, LogOut, X, Inbox } from "lucide-react";
 import { useState } from "react";
+import WhatsAppStatus from "../whatsapp/WhatsAppStatus";
 
 interface SidebarProps {
   user: any;
@@ -10,6 +11,7 @@ interface SidebarProps {
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
+  { id: "inbox", label: "Inbox", path: "/dashboard/inbox", icon: <Inbox size={18} /> },
   { id: "customers", label: "Customers", path: "/dashboard/customers", icon: <Users size={18} /> },
   { id: "campaigns", label: "Campaigns", path: "/dashboard/campaigns", icon: <Megaphone size={18} /> },
 ];
@@ -50,10 +52,7 @@ export default function Sidebar({ user, isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        <div className="db-wa-status">
-          <Wifi size={14} />
-          <span>WhatsApp Connected</span>
-        </div>
+        <WhatsAppStatus />
 
         <nav className="db-nav">
           {NAV_ITEMS.map((item) => (

@@ -18,6 +18,12 @@ frontend/dist/
 frontend/dist-ssr/
 
 # ======================================
+# WhatsApp Baileys Auth Session
+# ======================================
+backend/baileys_auth/
+baileys_auth/
+
+# ======================================
 # Logs
 # ======================================
 logs/
