@@ -1,6 +1,6 @@
 # ✅ WhatsApp Baileys Integration Complete!
 
-## 🎉 What Changed
+## 🎉 What Changed in project
 
 Maine **Meta Official API ko completely remove kar diya** aur **Baileys** integrate kar diya hai. Ab tum apne personal/business WhatsApp se directly messages send kar sakte ho - **NO API KEYS NEEDED!**
 
